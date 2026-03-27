@@ -1,0 +1,26 @@
+# Virtual environment
+venv/
+.env/
+env/
+
+# ChromaDB stored data (no need to push DB to github)
+chroma_db/
+
+# PDF files (usually large, keep private)
+pdfs/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables (API keys — never push this!)
+.env
+
+# VS Code settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
