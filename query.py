@@ -1,12 +1,12 @@
 import chromadb
 from chromadb.utils import embedding_functions
 from openai import OpenAI
-from config import COLLECTION_NAME, EMBED_MODEL
+from config import COLLECTION_NAME,EMBED_MODEL
 
 # ChromaDB connection
 client=chromadb.PersistentClient(path="./chroma_db")
 embed_fn=embedding_functions.SentenceTransformerEmbeddingFunction(model_name=EMBED_MODEL)
-collection = client.get_or_create_collection(name=COLLECTION_NAME,embedding_function=embed_fn)
+collection=client.get_or_create_collection(name=COLLECTION_NAME,embedding_function=embed_fn)
 
 llm = OpenAI(
     base_url="http://localhost:11434/v1",
