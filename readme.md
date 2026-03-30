@@ -138,50 +138,6 @@ PDF_FOLDER      = "./pdfs"             # PDF source folder
 
 ---
 
-## 🔄 Want to use OpenAI instead of Ollama?
-
-In `query.py`, replace:
-```python
-# Ollama (local, free)
-llm = OpenAI(
-    base_url="http://localhost:11434/v1",
-    api_key="ollama"
-)
-model = "llama3.2"
-```
-With:
-```python
-# OpenAI (cloud, paid)
-llm = OpenAI()   # set OPENAI_API_KEY in .env
-model = "gpt-3.5-turbo"
-```
-
----
-
-## 🔄 Want to use FAISS instead of ChromaDB?
-
-```python
-# pip install faiss-cpu
-import faiss, numpy as np, json
-from sentence_transformers import SentenceTransformer
-
-model = SentenceTransformer("all-MiniLM-L6-v2")
-
-# Ingest
-embeddings = model.encode(chunks)
-index = faiss.IndexFlatL2(embeddings.shape[1])
-index.add(np.array(embeddings, dtype="float32"))
-faiss.write_index(index, "faiss.index")
-json.dump(chunks, open("chunks.json", "w"))
-
-# Query
-index = faiss.read_index("faiss.index")
-q_vec = model.encode([query]).astype("float32")
-_, indices = index.search(q_vec, k=3)
-top_chunks = [chunks[i] for i in indices[0]]
-```
-
----
 
 ## 📦 Dependencies
 

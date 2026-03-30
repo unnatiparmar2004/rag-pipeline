@@ -3,7 +3,7 @@ from chromadb.utils import embedding_functions
 from openai import OpenAI
 from config import COLLECTION_NAME, EMBED_MODEL
 
-# ChromaDB connection (unchanged)
+# ChromaDB connection
 client=chromadb.PersistentClient(path="./chroma_db")
 embed_fn=embedding_functions.SentenceTransformerEmbeddingFunction(model_name=EMBED_MODEL)
 collection = client.get_or_create_collection(name=COLLECTION_NAME,embedding_function=embed_fn)
@@ -37,7 +37,7 @@ ANSWER:"""
     return response.choices[0].message.content
 
 if __name__ == "__main__":
-    print("RAG Pipeline ready (Ollama)! Type 'exit' to quit.\n")
+    print("RAG Pipeline ready (Ollama)")
     while True:
         q = input("You: ").strip()
         if q.lower() == "exit":
