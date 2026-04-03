@@ -1,6 +1,6 @@
 # 🔍 RAG Pipeline — PDF Question Answering System
 
-A complete **Retrieval-Augmented Generation (RAG)** pipeline built from scratch using Python, ChromaDB, and Ollama. Upload any PDF and ask questions about it using a local LLM — no OpenAI API key needed!
+A complete Retrieval-Augmented Generation (RAG) pipeline built using Python, ChromaDB, LangChain, and Ollama. Upload any PDF and ask questions about it using a local LLM — no OpenAI API key needed!
 
 ---
 
@@ -18,26 +18,46 @@ Instead of relying on the LLM's training data, it answers from **your own PDFs**
 
 ```
 INDEXING PHASE
-PDF ──► Text Extraction ──► Chunking ──► Embeddings ──► ChromaDB
+PDF ──► LangChain Loader ──► Text Splitter ──► Embeddings ──► ChromaDB
 
 QUERY PHASE
-User Query ──► Embeddings ──► ChromaDB Similarity Search ──► Relevant Chunks ──► LLM ──► Answer
+User Query ──► Retriever ──► Relevant Chunks ──► RetrievalQA Chain ──► LLM ──► Answer
 ```
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Component | Tool |
-|---|---|
-| Language | Python 3.10+ |
-| PDF Parsing | PyPDF |
-| Embeddings | Sentence Transformers (`all-MiniLM-L6-v2`) |
-| Vector Database | ChromaDB |
-| LLM | Ollama (Llama3.2) — runs locally |
-| Alternative DB | FAISS |
+Component       | Tool 
+
+Language        | Python 3.10+ 
+PDF Parsing     | PyPDF 
+Embeddings      | Sentence Transformers (`all-MiniLM-L6-v2`) 
+Vector Database | ChromaDB 
+LLM             | Ollama (Llama3.2) — runs locally 
+Framework       | LangChain (for RAG orchestration) 
+Alternative DB  | FAISS 
 
 ---
+
+---
+
+## Enhancements (LangChain Integration)
+
+This project was enhanced using **LangChain** to make the RAG pipeline more modular and production-ready.
+
+Key improvements:
+- Replaced manual PDF parsing with `PyPDFLoader`
+- Used `RecursiveCharacterTextSplitter` for efficient chunking
+- Integrated `HuggingFaceEmbeddings`
+- Used `Chroma` vector store via LangChain
+- Implemented `Retriever` for similarity search
+- Built a `RetrievalQA` chain for end-to-end query handling
+
+This makes the system:
+- More scalable
+- Cleaner and modular
+- Industry-standard architecture
 
 ## 📁 Project Structure
 
@@ -145,9 +165,10 @@ PDF_FOLDER      = "./pdfs"             # PDF source folder
 chromadb
 sentence-transformers
 pypdf
-openai
 langchain
-faiss-cpu
+langchain-community
+langchain-text-splitters
+ollama
 ```
 
 Install all:
