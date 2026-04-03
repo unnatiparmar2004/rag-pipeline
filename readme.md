@@ -28,15 +28,15 @@ User Query ──► Retriever ──► Relevant Chunks ──► RetrievalQA C
 
 ## 🛠️ Tech Stack
 
-Component       | Tool 
-
-Language        | Python 3.10+ 
-PDF Parsing     | PyPDF 
-Embeddings      | Sentence Transformers (`all-MiniLM-L6-v2`) 
-Vector Database | ChromaDB 
-LLM             | Ollama (Llama3.2) — runs locally 
-Framework       | LangChain (for RAG orchestration) 
-Alternative DB  | FAISS 
+| Component        | Tool |
+|------------------|------|
+| Language         | Python 3.10+ |
+| PDF Parsing      | PyPDF |
+| Embeddings       | Sentence Transformers (`all-MiniLM-L6-v2`) |
+| Vector Database  | ChromaDB |
+| LLM              | Ollama (Llama3.2) — runs locally |
+| Framework        | LangChain (for RAG orchestration) |
+| Alternative DB   | FAISS |
 
 ---
 
