@@ -1,30 +1,33 @@
 import os
-import chromadb
-from chromadb.utils import embedding_functions
-from pypdf import PdfReader
-from config import COLLECTION_NAME,EMBED_MODEL,CHUNK_SIZE,CHUNK_OVERLAP,PDF_FOLDER
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
+from config import (
+    COLLECTION_NAME, EMBED_MODEL, CHUNK_SIZE,
+    CHUNK_OVERLAP, PDF_FOLDER, CHROMA_PATH
+)
 
-client=chromadb.PersistentClient(path="./chroma_db")
-embed_fn=embedding_functions.SentenceTransformerEmbeddingFunction(model_name=EMBED_MODEL)
-collection=client.get_or_create_collection(name=COLLECTION_NAME,embedding_function=embed_fn)
+# ── Embeddings & Vector Store ────────────────────────────────────────────────
+embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
 
-def extract_text_from_pdf(pdf_path: str) -> str:
-    reader=PdfReader(pdf_path)
-    text  =""
-    for page in reader.pages:
-        text += page.extract_text() + "\n"
-    return text
+vectorstore = Chroma(
+    collection_name=COLLECTION_NAME,
+    embedding_function=embeddings,
+    persist_directory=CHROMA_PATH
+)
 
-def chunk_text(text: str, size=CHUNK_SIZE, overlap=CHUNK_OVERLAP) -> list[str]:
-    chunks, start = [], 0
-    while start < len(text):
-        end = start + size
-        chunks.append(text[start:end].strip())
-        start += size - overlap
-    return [c for c in chunks if len(c) > 50]
+# ── Text Splitter ────────────────────────────────────────────────────────────
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=CHUNK_SIZE,
+    chunk_overlap=CHUNK_OVERLAP,
+    length_function=len,
+)
 
+# ── Helpers ──────────────────────────────────────────────────────────────────
 def is_already_ingested(pdf_name: str) -> bool:
-    results = collection.get(where={"source_file": pdf_name})
+    """Check if a PDF has already been ingested by looking for its metadata."""
+    results = vectorstore.get(where={"source_file": pdf_name})
     return len(results["ids"]) > 0
 
 def ingest_pdf(pdf_path: str):
@@ -35,26 +38,33 @@ def ingest_pdf(pdf_path: str):
         return
 
     print(f"Ingesting: {pdf_path}")
-    text=extract_text_from_pdf(pdf_path)
-    chunks=chunk_text(text)
 
-    ids = [f"{pdf_name}_chunk_{i}" for i in range(len(chunks))]
-    metadatas=[{"source": pdf_path, "source_file": pdf_name, "chunk": i} for i in range(len(chunks))]
+    # LangChain PDF loader — returns list of Document objects (one per page)
+    loader = PyPDFLoader(pdf_path)
+    pages  = loader.load()
 
-    collection.upsert(
-        documents=chunks,
-        ids=ids,
-        metadatas=metadatas
-    )
-    print(f"Stored {len(chunks)} chunks")
+    # Split pages into smaller chunks
+    chunks = splitter.split_documents(pages)
 
+    # Attach custom metadata so we can filter later
+    for i, chunk in enumerate(chunks):
+        chunk.metadata["source_file"] = pdf_name
+        chunk.metadata["chunk"]       = i
+
+    # Add to ChromaDB via LangChain
+    vectorstore.add_documents(chunks)
+    print(f"Stored {len(chunks)} chunks from '{pdf_name}'")
+
+# ── Entry Point ──────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     os.makedirs(PDF_FOLDER, exist_ok=True)
-    pdfs=[f for f in os.listdir(PDF_FOLDER) if f.endswith(".pdf")]
+    pdfs = [f for f in os.listdir(PDF_FOLDER) if f.endswith(".pdf")]
 
     if not pdfs:
         print("No PDFs found in ./pdfs folder!")
     else:
         for pdf in pdfs:
             ingest_pdf(os.path.join(PDF_FOLDER, pdf))
-        print(f"\nDone! Total docs in DB: {collection.count()}")
+
+        total = vectorstore._collection.count()
+        print(f"\nTotal docs in DB: {total}")
